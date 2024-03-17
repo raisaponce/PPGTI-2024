@@ -4,23 +4,30 @@ import pandas as pd
 
 def nomes_cidades(sigla_estado):
     url = f'https://servicodados.ibge.gov.br/api/v1/localidades/estados/{sigla_estado}/municipios'
-    try:
-        response = requests.request("GET",url)
-        if response.status_code ==200:
-            cidades =pdDataFrame(response.json())
-            df = pd.DataFrame(cidades)
-            return df['nome']
-        else:
-            print(f"Erro ao acessar a API: {response.status_code}")
-            return None
-    except KeyError:
-        print(f"Erro na requisição HTTP: {e}")
-        return None
 
-estado = 'RN'  # Insira sigla do estado desejado
-cidades = obter_cidades_por_estado(estado)
-if cidades is not None:
-    print(f"Cidades do estado de {estado}:")
-    print(cidades)
-else:
-    print("Não foi possível obter a lista de cidades.")
+    # Obtém a sigla do estado fornecida
+    cidades =pdDataFrame(response.json())
+    estado_encontrado = None
+    for estado in estados:
+        if estado["sigla"].lower() == sigla_estado.lower():
+            estado_encontrado = estado
+            break
+
+    if estado_encontrado is None:
+        return "Estado não encontrado."
+
+    # Obtém as cidades do estado
+    url_cidades = f"https://servicodados.ibge.gov.br/api/v1/localidades/estados/{estado_encontrado['id']}/municipios"
+    cidades = requests.get(url_cidades).json()
+
+    
+    df_cidades = pd.DataFrame(cidades)
+    return df_cidades["nome"]
+
+# Digite a sigla do Estado
+sigla_estado = input("Digite a sigla do estado (ex: RJ, para Rio de Janeiro): ")
+
+# Listar as cidades do estado especificado
+cidades_estado = obter_cidades_por_estado(sigla_estado)
+print("Cidades do estado:")
+print(cidades_estado)
